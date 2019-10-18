@@ -1,0 +1,363 @@
+//Robert Muresan
+// April 20, 2018
+
+
+#include <LiquidCrystal.h>
+
+#include <Key.h>
+#include <Keypad.h>
+bool antispam = true;
+bool antispam2 = true;
+double oldmoney = 0;
+double oldmoney2 = 0;
+double money = 0;
+double winterfresh = 2;
+double kitkat = 2;
+double polarice = 2;
+double peppermint = 2;
+int PIstock = 4;
+int WFstock = 3;
+int Kstock = 3;
+int PMstock = 3;
+
+LiquidCrystal lcd(1, 2, 4, 5, 6, 7); // Creates an LC object. Parameters: (rs, enable, d4, d5, d6, d7)
+
+int mB1S = 43;
+int mB11 = 45;
+int mB12 = 47;
+int mB2S = 53;
+int mB21 = 51;
+int mB22 = 49;
+int mA1S = 41;
+int mA11 = 39;
+int mA12 = 37;
+int mA2S = 31;
+int mA21 = 33;
+int mA22 = 35;
+
+
+int Current = 0;
+const byte ROWS = 4; //four rows
+const byte COLS = 4; //four columns
+char keys[ROWS][COLS] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
+};
+int ProxSensor10 = 28; //Declaring where the Out pin from the sensor is wired
+int ProxSensor5 = 30; //Declaring where the Out pin from the sensor is wired
+int ProxSensor25 = 32; //Declaring where the Out pin from the sensor is wired
+int ProxSensor100 = 34; //Declaring where the Out pin from the sensor is wired
+int ProxSensor200 = 36; //Declaring where the Out pin from the sensor is wired
+byte rowPins[ROWS] = {52, 50, 48, 46}; //connect to the row pinouts of the keypad
+byte colPins[COLS] = {44, 42, 40, 38}; //connect to the column pinouts of the keypad
+
+Keypad keypad = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS );
+void coin() {
+
+  if (digitalRead(ProxSensor10) == LOW)   //Check the sensor output if it's high
+  {
+    money = money + 0.10;  // Add 10 Cents
+    delay(300);
+  }
+  if (digitalRead(ProxSensor5) == LOW)   //Check the sensor output if it's high
+  {
+    money = money + 0.05;  // Add 5 Cents
+    delay(300);
+  }
+  if (digitalRead(ProxSensor25) == LOW)   //Check the sensor output if it's high
+  {
+    money = money + 0.25;  // Add 25 Cents
+    delay(300);
+  }
+  if (digitalRead(ProxSensor100) == LOW)   //Check the sensor output if it's high
+  {
+    money = money + 1;  // Add 100 Cents
+    delay(300);
+  }
+  if (digitalRead(ProxSensor200) == LOW)   //Check the sensor output if it's high
+  {
+    money = money + 2;  // Add 200 Cents
+    delay(300);
+  }
+
+}
+void setup() {
+  lcd.begin(16, 2);
+  pinMode(mA1S, OUTPUT);
+  pinMode(mA11, OUTPUT);
+  pinMode(mA12, OUTPUT);
+  pinMode(mB1S, OUTPUT);
+  pinMode(mB11, OUTPUT);
+  pinMode(mB12, OUTPUT);
+  pinMode(mA2S, OUTPUT);
+  pinMode(mA21, OUTPUT);
+  pinMode(mA22, OUTPUT);
+  pinMode(mB2S, OUTPUT);
+  pinMode(mB21, OUTPUT);
+  pinMode(mB22, OUTPUT);
+  pinMode(ProxSensor10, INPUT); // then we have the out pin from the module
+  pinMode(ProxSensor5, INPUT); // then we have the out pin from the module
+  pinMode(ProxSensor25, INPUT); // then we have the out pin from the module
+  pinMode(ProxSensor100, INPUT); // then we have the out pin from the module
+  pinMode(ProxSensor200, INPUT); // then we have the out pin from the module
+
+}
+
+void moneydisplay() {
+  lcd.setCursor(5, 1);
+  lcd.print("$");
+  lcd.print(money);
+  delay(250);
+}
+void broke() {
+  lcd.clear();
+  lcd.print("Insufficient $$$");
+  moneydisplay();
+  delay(750);
+}
+
+void halt() {
+  analogWrite(mA1S, 150);
+  analogWrite(mB1S, 150);
+  analogWrite(mA2S, 150);
+  analogWrite(mB2S, 150);
+  digitalWrite(mA11, LOW);
+  digitalWrite(mA12, LOW);
+  digitalWrite(mA21, LOW);
+  digitalWrite(mA22, LOW);
+  digitalWrite(mB11, LOW);
+  digitalWrite(mB12, LOW);
+  digitalWrite(mB21, LOW);
+  digitalWrite(mB22, LOW);
+}
+
+void choose() {
+  lcd.clear();
+  lcd.setCursor(1, 0);
+  lcd.print("Select an item");
+}
+
+void outofstock() {
+  lcd.clear();
+  lcd.setCursor(2, 0);
+  lcd.print("Out Of Stock");
+}
+void loop() {
+  halt();
+  while ((money < polarice) && (money < kitkat) && (money < winterfresh) &&  (money < peppermint)) {
+    //STAYS IN LOOP UNTIL SOMETHING CAN BE PURCHASED
+    coin();
+    if (antispam == true) {
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("Insert Coins"); // Prints Name OF Vending Machine" on the LCD
+      lcd.setCursor(5, 1);
+      lcd.print("$");
+      lcd.print(money);
+      antispam = false;
+    }
+
+    if (money > oldmoney) {
+      lcd.clear();
+      lcd.setCursor(5, 0);
+      lcd.print("MORE!!");
+      moneydisplay();
+      delay(250);
+      antispam = true;
+    }
+    oldmoney = money;
+  }
+
+
+
+
+  char key = keypad.getKey(); //Get Key
+  //KEY SYSTEM, IF PRESSED SET A CURRENT SELECTION OPTION
+  if (key == '1') {
+    if (PIstock == 0) {
+      outofstock();
+      moneydisplay();
+      delay(500);
+      Current = 0;
+    }
+    else {
+      lcd.clear();
+      lcd.setCursor(1, 0);
+      lcd.print("Polar Ice $");
+      lcd.print(polarice);
+      moneydisplay();
+      Current = 1;
+      antispam2 = true;
+    }
+  }
+
+  if (key == '2') {
+    if (Kstock == 0) {
+      outofstock();
+      moneydisplay();
+      Current = 0;
+      delay(500);
+    }
+    else {
+      lcd.clear();
+      lcd.setCursor(2, 0);
+      lcd.print("Kitkat $");
+      lcd.print(kitkat);
+      moneydisplay();
+      Current = 2;
+      antispam2 = true;
+    }
+  }
+  if (key == '3') {
+    if (WFstock == 0) {
+      outofstock();
+      moneydisplay();
+      Current = 0;
+      delay(500);
+    }
+    else {
+      lcd.clear();
+      lcd.print("Winterfresh $");
+      lcd.print(winterfresh);
+      moneydisplay();
+      Current = 3;
+      antispam2 = true;
+
+    }
+  }
+
+  if (key == '4') {
+    if (PMstock == 0) {
+      outofstock();
+      moneydisplay();
+      Current = 0;
+      delay(500);
+    }
+    else {
+      lcd.clear();
+      lcd.print("Peppermint $");
+      lcd.print(peppermint);
+      moneydisplay();
+      Current = 4;
+      antispam2 = true;
+
+    }
+  }
+  if (Current == 1 && key == '*') {
+    //A1
+    Current = 0;
+    if (money >= polarice) {
+      lcd.clear();
+      lcd.print("Polar Ice Gum");
+      moneydisplay();
+      money = money - polarice;
+      PIstock--;
+      analogWrite(mA1S, 130);
+      digitalWrite(mA11, HIGH);
+      digitalWrite(mA12, LOW);
+      delay(125);
+      antispam2 = true;
+
+    }
+    else {
+      broke();
+    }
+  }
+  else if (Current == 2  && key == '*') {
+    //B1
+
+    Current = 0;
+    if (money >= kitkat) {
+      lcd.clear();
+      lcd.setCursor(4, 0);
+      lcd.print("Kitkat");
+      moneydisplay();
+      money = money - kitkat;
+      Kstock--;
+      analogWrite(mA2S, 130);
+      digitalWrite(mA21, HIGH);
+      digitalWrite(mA22, LOW);
+      delay(125);
+      antispam2 = true;
+
+    }
+    else {
+      broke();
+    }
+  }
+  //A2
+  else if (Current == 3 && key == '*') {
+    //A2
+
+    Current = 0;
+    if (money >= kitkat) {
+      lcd.clear();
+      lcd.print("Winterfresh Gum");
+      moneydisplay();
+      money = money - winterfresh;
+      WFstock--;
+      analogWrite(mB1S, 130);
+      digitalWrite(mB11, HIGH);
+      digitalWrite(mB12, LOW);
+      delay(125);
+      antispam2 = true;
+
+    }
+    else {
+      broke();
+    }
+  }
+  else if (Current == 4 && key == '*') {
+    //B2
+
+    Current = 0;
+    if (money >= peppermint) {
+      lcd.clear();
+      lcd.print("Peppermint Gum");
+      moneydisplay();
+      money = money - peppermint;
+      PMstock--;
+      analogWrite(mB2S, 130);
+      digitalWrite(mB21, HIGH);
+      digitalWrite(mB22, LOW);
+      delay(125);
+      antispam2 = true;
+    }
+    else {
+      broke();
+    }
+  }
+  else if (Current == 0) {
+    coin();
+    if (antispam2 == true) {
+      coin();
+      lcd.clear();
+      choose();
+      lcd.setCursor(5, 1);
+      lcd.print("$");
+      lcd.print(money);
+      antispam2 = false;
+    }
+    if (money > oldmoney2) {
+      antispam2 = true;
+    }
+    oldmoney2 = money;
+  }
+  if (key == '#') { 
+    lcd.clear();
+    lcd.setCursor(3, 0);
+    lcd.print("Canceling");
+    moneydisplay();
+    Current = 0;
+    antispam2 = true;
+  }
+  if (key != '1' && key != '2' && key != 0 && key != '3' && key != '4' && key != '*' && key != '#') {
+    lcd.clear();
+    lcd.print("Invalid Item");
+    moneydisplay();
+    Current = 0;
+    antispam2 = true;
+  }
+}
